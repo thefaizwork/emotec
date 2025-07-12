@@ -1,0 +1,35 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+
+# Virtual envs
+venv/
+.env/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Frontend
+frontend/node_modules/
+frontend/.next/
+
+# Datasets – big raw data should not be versioned
+datasets/
+
+# Saved models (optional – keep if you want weights tracked via LFS)
+backend/saved_models/
+
+# Jupyter notebooks checkpoints
+.ipynb_checkpoints/
+
+# Env / secrets
+*.env
+.env.*
+
+# IDE
+.vscode/
+.idea/
