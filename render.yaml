@@ -2,7 +2,7 @@ services:
   - type: web
     name: emotec-backend
     env: python
-    pythonVersion: 3.10      
+    pythonVersion: 3.11
     region: oregon
     plan: free
     buildCommand: "pip install -r backend/requirements.txt"

@@ -21,7 +21,7 @@ frontend/.next/
 datasets/
 
 # Saved models (optional – keep if you want weights tracked via LFS)
-# backend/saved_models/
+backend/saved_models/
 
 # Jupyter notebooks checkpoints
 .ipynb_checkpoints/
