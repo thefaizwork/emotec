@@ -17,6 +17,18 @@ NOTE:
   `preprocess_audio_chunk()` accordingly.
 """
 
+# ---------------------------------------------------------------------------
+# Compatibility shim – Python 3.12 removed distutils; many deps still need it
+# ---------------------------------------------------------------------------
+import sys, importlib
+try:
+    import distutils  # type: ignore
+except ModuleNotFoundError:  # pragma: no cover
+    import setuptools  # ensures vendor copy is present
+    # Alias vendor `_distutils` as standard module so imports like 'distutils.util' work
+    distutils = importlib.import_module('setuptools._distutils')
+    sys.modules['distutils'] = distutils
+
 import threading
 import time
 from collections import Counter
@@ -101,6 +113,14 @@ _thread: threading.Thread | None = None
 _facial_preds: list[str] = []
 _audio_preds: list[str] = []
 
+# Determine audio model expected input format
+AUDIO_INPUT_RANK = len(audio_model.input_shape)
+EXPECTED_FLAT_LEN: int | None = audio_model.input_shape[1] if AUDIO_INPUT_RANK == 2 else None
+EXPECTED_CNN_SHAPE: tuple[int,int] | None = (
+    (audio_model.input_shape[1] or 96,
+     audio_model.input_shape[2] or 64)
+) if AUDIO_INPUT_RANK != 2 else None
+
 # Time-series storage: (timestamp_seconds, emotion)
 _facial_time_series: list[tuple[float, str]] = []
 _audio_time_series: list[tuple[float, str]] = []
@@ -121,16 +141,40 @@ def preprocess_face(frame: np.ndarray) -> np.ndarray:
 
 
 def preprocess_audio_chunk(raw: np.ndarray, sr: int) -> np.ndarray:
-    """Convert raw mono audio chunk into Mel-spectrogram for the model."""
+    """Convert raw mono audio chunk into the correct input tensor for the audio model.
+
+    Handles two model types:
+    1. CNN-like model expecting shape (1, H, W, 1)
+    2. Dense model expecting flat vector (1, N)
+    The function automatically inspects `audio_model.input_shape` to choose the path.
+    """
+
+    # If stereo convert to mono
     if raw.ndim > 1:
-        raw = np.mean(raw, axis=1)  # stereo → mono
-    # Compute log-Mel spectrogram (example: 64 mel bands, 96 frames)
+        raw = np.mean(raw, axis=1)
+
+    # 1. Build log-Mel spectrogram
     mel = librosa.feature.melspectrogram(y=raw, sr=sr, n_mels=64, fmax=8000)
     log_mel = librosa.power_to_db(mel, ref=np.max)
-    log_mel = cv2.resize(log_mel, (64, 96))  # ensure fixed size (time, freq)
-    log_mel = (log_mel + 40) / 40  # simple normalization to roughly [0,1]
-    log_mel = np.expand_dims(log_mel, axis=(0, -1)).astype("float32")  # (1, 96, 64, 1)
-    return log_mel
+
+    # Ensure consistent time×freq resolution for CNN input
+    target_height, target_width = (EXPECTED_CNN_SHAPE or (96, 64))
+    log_mel = cv2.resize(log_mel, (target_width, target_height))  # cv2 expects (w, h)
+
+    # Normalise rough dB range to ~[0,1]
+    log_mel = (log_mel + 40) / 40
+
+    # Dense model → flatten/pad/truncate
+    if EXPECTED_FLAT_LEN is not None:
+        flat = log_mel.flatten()
+        if flat.size < EXPECTED_FLAT_LEN:
+            flat = np.pad(flat, (0, EXPECTED_FLAT_LEN - flat.size))
+        if flat.size > EXPECTED_FLAT_LEN:
+            flat = flat[:EXPECTED_FLAT_LEN]
+        return np.expand_dims(flat.astype("float32"), 0)  # (1, N)
+
+    # CNN model → add channel dim
+    return np.expand_dims(log_mel.astype("float32"), (0, -1))  # (1, H, W, 1)
 
 # ---------------------------------------------------------------------------
 # Helper functions for report generation
@@ -152,18 +196,30 @@ def compress_series(series: list[tuple[float, str]]) -> list[dict]:
     return segments
 
 
+EMO_TIPS = {
+        "Angry": "Consider short breaks or mindfulness exercises to cool down.",
+        "Disgust": "Try focusing on positive thoughts to soften facial tension.",
+        "Fear": "Deep-breathing can help reduce anxious expressions and tone.",
+        "Sad": "Think about an uplifting memory or smile gently to lift mood.",
+        "Happy": "Great! Keep that positive energy going.",
+        "Surprise": "Maintain calm eye contact to avoid looking startled.",
+        "Calm": "Excellent composure – keep it up!",
+        "Neutral": "Neutral is fine; sprinkle in a smile now and then.",
+    }
+
+
 def build_suggestions(facial_counts: Counter, audio_counts: Counter) -> list[str]:
-    """Return simple improvement suggestions based on emotion distribution."""
-    negative = {"Angry", "Fear", "Sad", "Disgust"}
+    """Build per-emotion suggestions for emotions that actually occurred."""
+    combined = set(facial_counts) | set(audio_counts)
     suggestions: list[str] = []
-
-    total_facial = sum(facial_counts.values()) or 1
-    total_audio = sum(audio_counts.values()) or 1
-
-    if sum(facial_counts[e] for e in negative if e in facial_counts) / total_facial > 0.3:
-        suggestions.append("Facial: Try relaxation techniques (e.g., deep breathing, short breaks) to reduce negative expressions.")
-    if sum(audio_counts[e] for e in negative if e in audio_counts) / total_audio > 0.3:
-        suggestions.append("Audio: Keep a calm tone; practice speaking slowly and evenly.")
+    for emo in combined:
+        tip = EMO_TIPS.get(emo)
+        if tip:
+            # prefix channel depending on where emotion was dominant
+            fac = facial_counts.get(emo, 0)
+            aud = audio_counts.get(emo, 0)
+            channel = "Facial" if fac >= aud else "Audio"
+            suggestions.append(f"{channel}: {tip}")
     if not suggestions:
         suggestions.append("Great job! You maintained mostly positive emotions during the session.")
     return suggestions

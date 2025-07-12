@@ -16,7 +16,7 @@ export default function DeviceSelector({ kind, onSelect }: DeviceSelectorProps) 
 
   return (
     <select
-      className="bg-gray-800 text-gray-100 p-2 rounded"
+      className="bg-gray-800 text-gray-100 p-2 rounded w-full sm:w-auto"
       onChange={e => onSelect(e.target.value)}
     >
       <option value="">Default {kind === 'videoinput' ? 'camera' : 'mic'}</option>

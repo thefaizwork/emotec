@@ -3,6 +3,7 @@ import Head from 'next/head';
 import DeviceSelector from '../components/DeviceSelector';
 import AudioVisualizer from '../components/AudioVisualizer';
 import { startSession, stopSession, healthCheck } from '../lib/api';
+import AnimatedButton from '../components/AnimatedButton';
 import { useToast } from '../components/Toast';
 
 export default function Home() {
@@ -75,14 +76,14 @@ export default function Home() {
       </Head>
       <main className="flex flex-col gap-4 p-6 max-w-4xl mx-auto">
         <h1 className="text-2xl font-bold">Emotion Detection Demo</h1>
-        <div className="flex gap-4 items-center">
+        <div className="flex flex-wrap gap-4 items-center">
           <DeviceSelector kind="videoinput" onSelect={setVideoId} />
           <DeviceSelector kind="audioinput" onSelect={setAudioId} />
           {!running ? (
-            <button onClick={start} className="px-4 py-2 bg-green-600 rounded">Start</button>
-          ) : (
-            <button onClick={stop} className="px-4 py-2 bg-red-600 rounded">Stop</button>
-          )}
+             <AnimatedButton label="Start" onClick={start} variant="start" />
+           ) : (
+             <AnimatedButton label="Stop" onClick={stop} variant="stop" />
+           )}
         </div>
         <video ref={videoRef} autoPlay muted playsInline className="w-full rounded bg-black" />
         <AudioVisualizer stream={stream} />

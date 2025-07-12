@@ -1,8 +1,8 @@
 import dynamic from 'next/dynamic';
 // @ts-ignore - dynamic imported component type
-const Line: any = dynamic(() => import('react-chartjs-2').then(mod => mod.Line as any), { ssr: false });
-import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
+const Bar: any = dynamic(() => import('react-chartjs-2').then(mod => mod.Bar as any), { ssr: false });
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 interface Props {
   data: Record<string, number>;
@@ -14,7 +14,7 @@ export default function BarChart({ data, title }: Props) {
   const values = Object.values(data);
   return (
     <div className="bg-gray-900 p-4 rounded">
-      <Line
+      <Bar
         options={{
           responsive: true,
           plugins: { legend: { display: false }, title: { display: true, text: title, color: '#e5e7eb' } },

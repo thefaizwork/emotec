@@ -39,7 +39,7 @@ export default function AnalysisDetail() {
       <main className="p-6 max-w-5xl mx-auto space-y-6">
         <h1 className="text-2xl font-bold">Session – {new Date(created_at).toLocaleString()}</h1>
 
-        <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           <Card>
             <CardTitle>Top Facial Emotion</CardTitle>
             <CardContent>
@@ -68,7 +68,7 @@ export default function AnalysisDetail() {
           </Card>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-4">
+        <div className="grid gap-4 sm:grid-cols-2">
           <BarChart data={facial_summary} title="Facial Emotions" />
           <BarChart data={audio_summary} title="Audio Emotions" />
         </div>

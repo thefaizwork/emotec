@@ -16,7 +16,12 @@ const card = cva('rounded-lg border border-gray-800 bg-gradient-to-b from-gray-9
 type CardProps = React.HTMLAttributes<HTMLDivElement> & VariantProps<typeof card>;
 
 export function Card({ className, padding, ...props }: CardProps) {
-  return <div className={clsx(card({ padding }), className)} {...props} />;
+  return (
+    <div
+      className={clsx('w-full', card({ padding }), className)}
+      {...props}
+    >{props.children}</div>
+  );
 }
 
 export function CardTitle({ children }: { children: React.ReactNode }) {
