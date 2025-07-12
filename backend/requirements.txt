@@ -3,12 +3,12 @@ fastapi==0.111.0
 uvicorn[standard]==0.29.0
 
 # ML + DSP stack
-numpy==1.26.4
-opencv-python==4.10.0.82
-tensorflow==2.19.0
-librosa==0.10.1
-sounddevice==0.4.6
-mediapipe==0.10.12
+numpy
+opencv-python
+tensorflow
+librosa
+sounddevice
+mediapipe
 
 # Misc utilities
 python-multipart==0.0.9  # for potential file uploads via FastAPI
