@@ -23,5 +23,5 @@ ENV PORT=8000
 EXPOSE $PORT
 
 # Command to run the application
-# Command to run the application using Uvicorn directly
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "${PORT:-8000}", "--workers", "1"]
+# Command to run the application using Uvicorn directly with shell form for env var expansion
+CMD exec uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1
