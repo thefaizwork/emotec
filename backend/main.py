@@ -93,8 +93,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",  # Local development
-        "https://your-netlify-app.netlify.app",  # Your Netlify URL
-        "https://*.netlify.app"  # All Netlify previews
+        "https://emolyze.netlify.app",  # Production Netlify URL
+        "https://emotec.onrender.com"  # Backend itself for self requests
     ],
     allow_credentials=True,
     allow_methods=["*"],
