@@ -1,0 +1,11 @@
+# Netlify configuration for Next.js frontend
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+# Use the official Next.js plugin so that Netlify can handle SSR/ISR correctly
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+[build.environment]
+  NODE_VERSION = "20"

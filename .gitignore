@@ -33,3 +33,6 @@ backend/saved_models/
 # IDE
 .vscode/
 .idea/
+
+# Local Netlify folder
+.netlify

@@ -1,0 +1,11 @@
+# Ignore Next.js build output
+.next/
+
+# Dependency directories
+node_modules/
+
+# Static export folder (if used)
+out/
+
+# Logs
+*.log
