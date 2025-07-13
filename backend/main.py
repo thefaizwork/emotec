@@ -43,7 +43,7 @@ import numpy as np
 import sounddevice as sd
 import tensorflow as tf
 import logging
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile, File
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -290,6 +290,51 @@ def _analysis_loop():
 
 # ---------------------------------------------------------------------------
 # API Endpoints
+# ---------------------------------------------------------------------------
+
+@app.post("/predict/face")
+async def predict_face(image: UploadFile = File(...)) -> Dict:
+    """Predict facial emotion from an uploaded image (JPEG/PNG)."""
+    try:
+        data = await image.read()
+        file_arr = np.frombuffer(data, dtype=np.uint8)
+        bgr = cv2.imdecode(file_arr, cv2.IMREAD_COLOR)
+        if bgr is None:
+            raise ValueError("Invalid image")
+        emotion_input = preprocess_face(bgr)
+        logits = facial_model.predict(emotion_input, verbose=0)[0]
+        pred = FACIAL_LABELS[int(np.argmax(logits))]
+        return {"emotion": pred}
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
+@app.post("/predict/audio")
+async def predict_audio(audio: UploadFile = File(...)) -> Dict:
+    """Predict audio emotion from a ≤1-second mono 16-kHz WAV/WEBM chunk."""
+    try:
+        raw_bytes = await audio.read()
+        import soundfile as sf, io
+        data, sr = sf.read(io.BytesIO(raw_bytes))
+        if sr != 16000:
+            data = librosa.resample(data.astype(np.float32), orig_sr=sr, target_sr=16000)
+            sr = 16000
+        # ensure mono
+        if data.ndim > 1:
+            data = np.mean(data, axis=1)
+        # keep max 1 sec
+        if data.shape[0] > sr:
+            data = data[-sr:]
+        emotion_input = preprocess_audio_chunk(data.astype(np.float32), sr)
+        logits = audio_model.predict(emotion_input, verbose=0)[0]
+        pred = AUDIO_LABELS[int(np.argmax(logits))]
+        return {"emotion": pred}
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+# ---------------------------------------------------------------------------
+# Legacy combined analysis endpoints (optional, still available)
+# ---------------------------------------------------------------------------
 # ---------------------------------------------------------------------------
 
 @app.post("/combine/start")
