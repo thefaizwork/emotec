@@ -41,9 +41,9 @@ export default function Home() {
         canvas.toBlob(async blob => {
           if (!blob) return;
           try {
-            await axios.post(`${API_BASE}/predict/face`, blob, {
-              headers: { 'Content-Type': 'image/jpeg' },
-            });
+            const fd = new FormData();
+            fd.append('image', blob, 'frame.jpg');
+            await axios.post(`${API_BASE}/predict/face`, fd);
           } catch (err) {
             console.error('face req failed', err);
           }
@@ -57,9 +57,9 @@ export default function Home() {
       recorder.ondataavailable = async ev => {
         if (!ev.data.size) return;
         try {
-          await axios.post(`${API_BASE}/predict/audio`, ev.data, {
-            headers: { 'Content-Type': 'audio/webm' },
-          });
+          const fdA = new FormData();
+          fdA.append('audio', ev.data, 'chunk.webm');
+          await axios.post(`${API_BASE}/predict/audio`, fdA);
         } catch (err) {
           console.error('audio req failed', err);
         }
