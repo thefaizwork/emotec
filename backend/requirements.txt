@@ -1,21 +1,21 @@
-# Core framework
-fastapi==0.104.1
-uvicorn[standard]==0.24.0
-python-multipart==0.0.6
+# Core dependencies
+fastapi>=0.95.0
+uvicorn[standard]>=0.21.0
+python-multipart>=0.0.6
 
-# ML + DSP stack with specific versions
-numpy==1.24.3
-opencv-python-headless==4.8.1.78
-tensorflow-cpu==2.13.0
-librosa==0.10.1
-sounddevice==0.4.6
+# ML and data processing
+numpy>=1.24.3
+opencv-python-headless>=4.8.1.78
+tensorflow-cpu>=2.12.0
+librosa>=0.10.1
 
 # Audio processing
-audioread==3.0.1
-soundfile==0.12.1
+sounddevice>=0.4.6
+audioread>=3.0.1
+soundfile>=0.12.1
 
-# MediaPipe (for face detection)
-mediapipe==0.10.21  # Latest version compatible with Python 3.10
+# Server
+gunicorn>=21.2.0
 
-# ASGI server
-gunicorn==21.2.0
+# Dependencies with version constraints
+typing-extensions>=3.7.4,<4.6.0
