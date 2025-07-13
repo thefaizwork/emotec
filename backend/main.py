@@ -91,7 +91,11 @@ app = FastAPI(title="Combined Facial + Audio Emotion API")
 from fastapi.middleware.cors import CORSMiddleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=[
+        "http://localhost:3000",  # Local development
+        "https://your-netlify-app.netlify.app",  # Your Netlify URL
+        "https://*.netlify.app"  # All Netlify previews
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
