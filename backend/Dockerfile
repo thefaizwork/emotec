@@ -23,4 +23,5 @@ ENV PORT=8000
 EXPOSE $PORT
 
 # Command to run the application
-CMD exec gunicorn --bind 0.0.0.0:${PORT:-8000} --workers 1 --threads 8 --timeout 0 main:app
+# Command to run the application using Uvicorn directly
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "${PORT:-8000}", "--workers", "1"]
