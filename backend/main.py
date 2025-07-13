@@ -92,10 +92,10 @@ from fastapi.middleware.cors import CORSMiddleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:3000",  # Local development
-        "https://emolyze.netlify.app",  # Production Netlify URL
-        "https://emotec.onrender.com"  # Backend itself for self requests
+        "http://localhost:3000",
+        "https://emotec.onrender.com",
     ],
+    allow_origin_regex=r"https://.*\.netlify\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
