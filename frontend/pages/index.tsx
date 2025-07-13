@@ -52,24 +52,34 @@ export default function Home() {
       frameTimer.current = setInterval(sendFrame, 500);
 
       // -------- audio chunks --------
-      const recOpts = MediaRecorder.isTypeSupported('audio/webm') ? { mimeType: 'audio/webm' } : undefined as any;
-      const recorder = new MediaRecorder(s, recOpts);
-      audioRecorder.current = recorder;
-      recorder.ondataavailable = async ev => {
-        if (!ev.data.size) return;
+      const audioTracks = s.getAudioTracks();
+      if (audioTracks.length) {
+        const mimeCandidates = [
+          'audio/webm;codecs=opus',
+          'audio/ogg;codecs=opus',
+          'audio/webm',
+        ];
+        const chosenMime = mimeCandidates.find(m => MediaRecorder.isTypeSupported(m));
         try {
-          const fdA = new FormData();
-          fdA.append('audio', ev.data, 'chunk.webm');
-          await axios.post(`${API_BASE}/predict/audio`, fdA);
+          const recorder = new MediaRecorder(s, chosenMime ? { mimeType: chosenMime } : undefined);
+          audioRecorder.current = recorder;
+          recorder.ondataavailable = async ev => {
+            if (!ev.data.size) return;
+            try {
+              const fdA = new FormData();
+              fdA.append('audio', ev.data, 'chunk.webm');
+              await axios.post(`${API_BASE}/predict/audio`, fdA);
+            } catch (err) {
+              console.error('audio req failed', err);
+            }
+          };
+          recorder.start(1000);
         } catch (err) {
-          console.error('audio req failed', err);
+          console.warn('Audio recording disabled:', err);
+          toast.push('error', 'Audio recording not available in this browser.');
         }
-      };
-      try {
-        recorder.start(1000);
-      } catch (err) {
-        console.error('MediaRecorder start failed', err);
-        toast.push('error', 'Could not start audio recording: ' + (err as any));
+      } else {
+        toast.push('error', 'No microphone detected; audio disabled.');
       }
 
       setRunning(true);
