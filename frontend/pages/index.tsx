@@ -52,16 +52,13 @@ export default function Home() {
       frameTimer.current = setInterval(sendFrame, 500);
 
       // -------- audio chunks --------
-      const audioTracks = s.getAudioTracks();
-      if (audioTracks.length) {
-        const mimeCandidates = [
-          'audio/webm;codecs=opus',
-          'audio/ogg;codecs=opus',
-          'audio/webm',
-        ];
+      const micTracks = s.getAudioTracks();
+      if (micTracks.length) {
+        const audioStream = new MediaStream([micTracks[0]]);
+        const mimeCandidates = ['audio/webm;codecs=opus', 'audio/ogg;codecs=opus', 'audio/webm'];
         const chosenMime = mimeCandidates.find(m => MediaRecorder.isTypeSupported(m));
         try {
-          const recorder = new MediaRecorder(s, chosenMime ? { mimeType: chosenMime } : undefined);
+          const recorder = new MediaRecorder(audioStream, chosenMime ? { mimeType: chosenMime } : undefined);
           audioRecorder.current = recorder;
           recorder.ondataavailable = async ev => {
             if (!ev.data.size) return;
