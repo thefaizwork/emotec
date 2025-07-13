@@ -52,7 +52,8 @@ export default function Home() {
       frameTimer.current = setInterval(sendFrame, 500);
 
       // -------- audio chunks --------
-      const recorder = new MediaRecorder(s, { mimeType: 'audio/webm' });
+      const recOpts = MediaRecorder.isTypeSupported('audio/webm') ? { mimeType: 'audio/webm' } : undefined as any;
+      const recorder = new MediaRecorder(s, recOpts);
       audioRecorder.current = recorder;
       recorder.ondataavailable = async ev => {
         if (!ev.data.size) return;
@@ -64,7 +65,12 @@ export default function Home() {
           console.error('audio req failed', err);
         }
       };
-      recorder.start(1000);
+      try {
+        recorder.start(1000);
+      } catch (err) {
+        console.error('MediaRecorder start failed', err);
+        toast.push('error', 'Could not start audio recording: ' + (err as any));
+      }
 
       setRunning(true);
     } catch (err) {
